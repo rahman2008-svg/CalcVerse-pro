@@ -1,6 +1,6 @@
 workflows:
   android-native-build:
-    name: CalcVerse Pro Stable Build
+    name: CalcVerse Pro Stable Build FIXED
     max_build_duration: 60
     instance_type: mac_mini_m1
 
@@ -8,9 +8,6 @@ workflows:
       java: 17
       groups:
         - default
-
-      vars:
-        PACKAGE_NAME: "com.aistudio.calcversepro.whpdmq"
 
     triggering:
       events:
@@ -29,6 +26,20 @@ workflows:
         script: |
           echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
 
+      # 🔥 IMPORTANT FIX: disable custom signing for debug
+      - name: Force debug signing fix
+        script: |
+          mkdir -p ~/.android
+          keytool -genkey -v \
+            -keystore ~/.android/debug.keystore \
+            -storepass android \
+            -alias androiddebugkey \
+            -keypass android \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -dname "CN=Android Debug,O=Android,C=US"
+
       - name: Clean project
         script: |
           ./gradlew clean --no-daemon
@@ -39,11 +50,3 @@ workflows:
 
     artifacts:
       - app/build/outputs/apk/debug/app-debug.apk
-
-    publishing:
-      email:
-        recipients:
-          - prince.ar.abdur.rahman2008@gmail.com
-        notify:
-          success: true
-          failure: true
