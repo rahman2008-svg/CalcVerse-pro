@@ -1,15 +1,11 @@
 workflows:
   android-native-build:
-    name: CalcVerse Pro - Native Build
+    name: CalcVerse Pro - Debug Build
     max_build_duration: 45
     instance_type: mac_mini_m1
 
     environment:
       java: 17
-      groups:
-        - keystore          # ← আপনার signing গ্রুপের নাম এখানে দিন
-      vars:
-        PACKAGE_NAME: "com.calcverse.pro"   # আপনার অ্যাপের প্যাকেজ নাম
 
     triggering:
       events:
@@ -17,8 +13,6 @@ workflows:
         - pull_request
       branch_patterns:
         - pattern: main
-          include: true
-        - pattern: develop
           include: true
 
     scripts:
@@ -28,10 +22,18 @@ workflows:
       - name: Setup local.properties
         script: echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
 
-      - name: Create Debug Keystore (for debug build)
+      - name: Use Standard Android Debug Keystore
         script: |
           mkdir -p \~/.android
-          keytool -genkey -v -keystore \~/.android/debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US" || true
+          keytool -genkey -v \
+            -keystore \~/.android/debug.keystore \
+            -storepass android \
+            -alias androiddebugkey \
+            -keypass android \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -dname "CN=Android Debug,O=Android,C=US" || true
 
       - name: Clean Project
         script: ./gradlew clean --no-daemon
@@ -39,15 +41,5 @@ workflows:
       - name: Build Debug APK
         script: ./gradlew assembleDebug --no-daemon --stacktrace
 
-      # Release build (শুধু তখন আনকমেন্ট করবেন যখন signing ঠিক হয়)
-      # - name: Build Release Bundle (AAB)
-      #   script: ./gradlew bundleRelease --no-daemon
-
     artifacts:
       - app/build/outputs/apk/debug/app-debug.apk
-      # - app/build/outputs/bundle/release/*.aab
-
-    publishing:
-      email:
-        recipients:
-          - your-email@example.com
