@@ -7,9 +7,9 @@ workflows:
     environment:
       java: 17
       groups:
-        - keystore   # ← এখানে আপনার signing secrets গ্রুপ যোগ করুন
+        - keystore          # ← আপনার signing গ্রুপের নাম এখানে দিন
       vars:
-        - ANDROID_SDK_ROOT
+        PACKAGE_NAME: "com.calcverse.pro"   # আপনার অ্যাপের প্যাকেজ নাম
 
     triggering:
       events:
@@ -17,6 +17,8 @@ workflows:
         - pull_request
       branch_patterns:
         - pattern: main
+          include: true
+        - pattern: develop
           include: true
 
     scripts:
@@ -26,34 +28,26 @@ workflows:
       - name: Setup local.properties
         script: echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
 
-      - name: Create Debug Keystore (if needed)
+      - name: Create Debug Keystore (for debug build)
         script: |
           mkdir -p \~/.android
-          keytool -genkey -v \
-            -keystore \~/.android/debug.keystore \
-            -storepass android \
-            -alias androiddebugkey \
-            -keypass android \
-            -keyalg RSA \
-            -keysize 2048 \
-            -validity 10000 \
-            -dname "CN=Android Debug,O=Android,C=US" || true
+          keytool -genkey -v -keystore \~/.android/debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US" || true
 
-      - name: Clean
+      - name: Clean Project
         script: ./gradlew clean --no-daemon
 
       - name: Build Debug APK
         script: ./gradlew assembleDebug --no-daemon --stacktrace
 
-      # Release build শুধু তখন চালাবেন যখন সব signing ঠিক থাকবে
-      # - name: Build Release AAB
+      # Release build (শুধু তখন আনকমেন্ট করবেন যখন signing ঠিক হয়)
+      # - name: Build Release Bundle (AAB)
       #   script: ./gradlew bundleRelease --no-daemon
 
     artifacts:
       - app/build/outputs/apk/debug/app-debug.apk
-      # - app/build/outputs/bundle/release/app-release.aab
+      # - app/build/outputs/bundle/release/*.aab
 
     publishing:
       email:
         recipients:
-          - your@email.com
+          - your-email@example.com
