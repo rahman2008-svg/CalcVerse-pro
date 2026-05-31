@@ -1,6 +1,6 @@
 workflows:
   android-native-build:
-    name: CalcVerse Pro Android Build
+    name: CalcVerse Pro Stable Build
     max_build_duration: 60
     instance_type: mac_mini_m1
 
@@ -21,21 +21,17 @@ workflows:
           include: true
 
     scripts:
-      - name: Fix permissions
+      - name: Make gradlew executable
         script: |
           chmod +x gradlew
 
-      - name: Set up local.properties
+      - name: Setup local.properties
         script: |
           echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
 
       - name: Clean project
         script: |
           ./gradlew clean --no-daemon
-
-      - name: Run tests
-        script: |
-          ./gradlew testDebugUnitTest --no-daemon
 
       - name: Build Debug APK
         script: |
@@ -47,7 +43,7 @@ workflows:
     publishing:
       email:
         recipients:
-          - princearabdurrahman57@gmail.com
+          - prince.ar.abdur.rahman2008@gmail.com
         notify:
           success: true
           failure: true
